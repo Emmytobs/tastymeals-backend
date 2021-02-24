@@ -1,0 +1,22 @@
+{
+  "name": "tasty-meals",
+  "version": "1.0.0",
+  "description": "A web application that allows people to order meals online and either pick them up or have them delivered",
+  "main": "app.js",
+  "scripts": {
+    "dev:start": "nodemon src/app",
+    "lint": "eslint src/app",
+    "start": "node src/app",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "pg": "^8.5.1",
+    "bcryptjs": "^2.4.3",
+    "eslint": "^7.20.0"
+  },
+  "keywords": [],
+  "author": "Emmanuel Otobo",
+  "license": "ISC"
+}
