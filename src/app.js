@@ -1,17 +1,19 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-require('dotenv').config({ path: `${__dirname}/config/.env` });
+const path = require('path')
+
+require('dotenv').config({ path: path.resolve('config','.env') });
 
 // Routes
-const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
 
 // Middleware
 app.use(cors());
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }));
 
-app.use(authRoutes);
+app.use(userRoutes);
 
 // Root endpoint (for testing purposes)
 app.get('/', (req, res) => {

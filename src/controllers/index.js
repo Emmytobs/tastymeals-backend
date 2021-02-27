@@ -1,3 +1,5 @@
 module.exports = {
-    authControllers: require('./auth.controllers')
+    userControllers: require('./user.controllers'),
+    mealControllers: require('./meal.controllers'),
+    restaurantControllers: require('./restaurant.controllers')
 }
