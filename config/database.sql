@@ -95,6 +95,7 @@ CREATE TABLE Meals(
     description TEXT NOT NULL,
     price INT NOT NULL,
     image VARCHAR NOT NULL,
+    category VARCHAR NOT NULL,
     createdAt TIMESTAMP DEFAULT NOW(),
     restaurantId INT NOT NULL,
     average_rating INT NOT NULL DEFAULT 0,
@@ -109,9 +110,13 @@ CREATE TABLE Restaurants(
     restaurantId SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR NOT NULL UNIQUE,
     address VARCHAR NOT NULL,
-    userId INT NOT NULL,
+    city VARCHAR NOT NULL,
+    country VARCHAR NOT NULL,
+    image VARCHAR DEFAULT NULL,
+    admin_user_id INT NOT NULL,
     createdAt TIMESTAMP DEFAULT NOW(),
-    rating INT NOT NULL DEFAULT 0,
+    average_rating INT NOT NULL DEFAULT 0,
+    rating_count INT NOT NULL DEFAULT 0,
     FOREIGN KEY (userId) 
         REFERENCES Users(userId)
             ON DELETE CASCADE

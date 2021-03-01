@@ -6,12 +6,18 @@ const authenticateUser = async (req, res, next) => {
         const authHeader = req.headers['authorization']
         const token = authHeader && authHeader.replace('Bearer ', '');
         if (!token) {
-            return httpResponseHandler(res, 401, "No authentication token provided")
+            return httpResponseHandler.error(res, 401, "No authentication token provided")
         }
-        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-        if (!payload) {
-            return httpResponseHandler(res, 403, "Token is invalid");
+
+        let payload;
+        try {
+            payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        } catch (err) {
+            const error = new Error('Token is invalid');
+            error.status = 401;
+            next(error);
         }
+
         req.user = { userId: payload.userId, email: payload.email };
         next()
     } catch (error) {
