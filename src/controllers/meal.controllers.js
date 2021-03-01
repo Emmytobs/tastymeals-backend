@@ -1,9 +1,8 @@
 const pool = require('../../config/db');
-const { constructUpdateQuery } = require('../helper-functions');
 const functions = require('../helper-functions');
 const { httpResponseHandler } = functions;
 
-const getSpecialOffers = async (req, res, next) => {
+const getSpecialOffers = async () => {
     // Find a way for users to get discounted meals   
     // Find a way for admins to put discounts on meals   
 }
@@ -14,7 +13,7 @@ const getNewMeals = async (req, res, next) => {
         const response = await pool.query(
             'SELECT * FROM Meals ORDER BY createdat DESC LIMIT $1 OFFSET $2',
             [limit, offset]
-``      );
+        );
         if (!response.rows.length) {
             return httpResponseHandler.success(res, 200, 'Looks like there are no new meals', null);
         }
@@ -43,13 +42,10 @@ const getASpecificMeal = async (req, res, next) => {
 
 const createMeal = async (req, res, next) => {
     try {
-        const existingRestaurantAdmin = await pool.query(
-            'SELECT * FROM Users WHERE userid=$1 AND type=$2',
-            [req.user.userId, 'RESTAURANT_ADMIN']
-        );
-        if (!existingRestaurantAdmin.rows.length) {
+        const userIsAdmin = req.user.type == 'RESTAURANT_ADMIN';
+        if (!userIsAdmin) {
             // User is not a restaurant admin
-            return httpResponseHandler.error(res, 403, 'Unable to create meal. User is not authorized.', null)
+            return httpResponseHandler.error(res, 403, 'User is not a restaurant admin.', null)
         }
 
         // Search the rows in the restaurants table to check if any row's userId matches the userId in the request object
@@ -57,9 +53,9 @@ const createMeal = async (req, res, next) => {
             'SELECT * FROM Restaurants WHERE admin_user_id=$1',
             [req.user.userId]
         );
-        // If the user is not an admin, prevent them from creating a meal
+        // If the admin user does not have a restaurant yet, prevent them from creating a meal
         if (!existingRestaurant.rows.length) {
-            return httpResponseHandler.error(res, 403, 'Unable to create meal. User is not authorized.', null)
+            return httpResponseHandler.error(res, 403, 'To add a meal, you need to create a restaurant profile', null)
         }
 
         const {
@@ -102,6 +98,12 @@ const updateMeal = async (req, res, next) => {
             return httpResponseHandler.error(res, 404, 'Meal not found');
         }
 
+        const userIsAdmin = req.user.type == 'RESTAURANT_ADMIN';
+        if (!userIsAdmin) {
+            // User is not a restaurant admin
+            return httpResponseHandler.error(res, 403, 'User is not a restaurant admin.', null)
+        }
+
         // Search the restaurants table to see if any restaurant's userId corresponds with that of the logged in user (req.user)
         const existingRestaurantByLoggedInUser = await pool.query(
         'SELECT * FROM Restaurants WHERE admin_user_id=$1',
@@ -109,7 +111,7 @@ const updateMeal = async (req, res, next) => {
         );
         // If the user is not an admin, prevent them from creating a meal
         if (!existingRestaurantByLoggedInUser.rows.length) {
-            return httpResponseHandler.error(res, 403, 'Unable to update meal. User is not authorized.', null)
+            return httpResponseHandler.error(res, 403, 'To update a meal, you need to create a retaurant profile.', null)
         }
 
         // If the meal exists and the user is an admin user, check if it was created by the currently logged in user (req.user)
@@ -123,7 +125,7 @@ const updateMeal = async (req, res, next) => {
             [req.user.userId, mealId]
         );
         if (!existingMealByLoggedInUser.rows.length) {
-            return httpResponseHandler.error(res, 403, 'Unable to delete meal. User is not authorized')
+            return httpResponseHandler.error(res, 403, 'You are not authorized. Looks like you did not create this meal')
         }
 
         // If it passes through all the checks, go ahead and update the meal
@@ -157,6 +159,12 @@ const deleteMeal = async (req, res, next) => {
             return httpResponseHandler.error(res, 404, 'Meal not found');
         }
 
+        const userIsAdmin = req.user.type == 'RESTAURANT_ADMIN';
+        if (!userIsAdmin) {
+            // User is not a restaurant admin
+            return httpResponseHandler.error(res, 403, 'User is not a restaurant admin.', null)
+        }
+
         // Search the restaurants table to see if any restaurant's userId corresponds with that of the logged in user (req.user)
         const existingRestaurantByLoggedInUser = await pool.query(
         'SELECT * FROM Restaurants WHERE admin_user_id=$1',
@@ -164,7 +172,7 @@ const deleteMeal = async (req, res, next) => {
         );
         // If the user is not an admin, prevent them from creating a meal
         if (!existingRestaurantByLoggedInUser.rows.length) {
-            return httpResponseHandler.error(res, 403, 'Unable to update meal. User is not authorized.', null)
+            return httpResponseHandler.error(res, 403, 'To delete a meal, you need to create a retaurant profile.', null)
         }
 
         // If the meal exists and the user is an admin user, check if it was created by the currently logged in user (req.user)
@@ -177,14 +185,14 @@ const deleteMeal = async (req, res, next) => {
             [req.user.userId, mealId]
         );
         if (!existingMealByLoggedInUser.rows.length) {
-            return httpResponseHandler.error(res, 403, 'Unable to delete meal. User is not authorized')
+            return httpResponseHandler.error(res, 403, 'You are not authorized. Looks like you did not create this meal.')
         }
 
         await pool.query(
             'DELETE FROM Meals WHERE mealId=$1', 
             [mealId]
         )
-       return httpResponseHandler.success(res, 204, 'Meal deleted successfully');
+       return httpResponseHandler.success(res, 200, 'Meal deleted successfully');
    } catch(error) {
        next(error)
    }
