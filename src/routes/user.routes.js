@@ -12,4 +12,6 @@ userRouter.get('/user/me', middleware.authenticateUser, userControllers.viewProf
 
 userRouter.put('/user', middleware.authenticateUser, userControllers.updateUser);
 
+userRouter.delete('/user', middleware.authenticateUser, userControllers.deleteUser)
+
 module.exports = userRouter;

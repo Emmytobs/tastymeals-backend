@@ -77,8 +77,8 @@ function userControllers () {
                 return httpResponseHandler.error(res, 400, 'To register as a restaurant admin, please fill in all fields');
             }
             const hashedPassword = await functions.hashPassword(password);
-            const response = await pool.query(
-                'INSERT INTO Users (firstname, lastname, email, phone, type, password) VALUES($1, $2, $3, $4, $5, $6)',
+            await pool.query(
+                'INSERT INTO Users (firstname, lastname, email, phone, type, password) VALUES($1, $2, $3, $4, $5, $6) RETURNING *',
                 [firstname, lastname, email, phone, type, hashedPassword]);
             // You should be able to handle errors here to output helpful error messages
             return httpResponseHandler.success(res, 201, 'User account created successfully');
@@ -89,16 +89,7 @@ function userControllers () {
 
     const viewProfile = async (req, res, next) => {
         try {
-            const response = await pool.query(
-                'SELECT * FROM Users WHERE userId=$1',
-                [req.user.userId]);
-
-            if (!response.rows.length) {
-                // List all the possible cases where this condition will be true:
-                // 1: User may no longer exist
-                return httpResponseHandler.error(res, 404, '');
-            }
-            return httpResponseHandler.success(res, 200, 'User profile fetched successfully', { ...response.rows[0] });
+            return httpResponseHandler.success(res, 200, 'User profile fetched successfully', { ...req.user });
         } catch (error) {
             next(error);
         }
@@ -126,12 +117,29 @@ function userControllers () {
         }
     }
 
+    const deleteUser = async (req, res, next) => {
+        try {
+            const user = await pool.query(
+                'DELETE FROM Users WHERE userid=$1 RETURNING *',
+                [req.user.userId]
+            )
+            
+            if (!user.rows.length) {
+                return httpResponseHandler.success(res, 404, 'User not found');
+            }
+            return httpResponseHandler.success(res, 200, 'User deleted successfully');
+        } catch (error) {
+            next(error)
+        }
+    }
+
     return {
         getNewAccessToken,
         login,
         registerUser,
         viewProfile,
-        updateUser
+        updateUser,
+        deleteUser
     }
 }
 

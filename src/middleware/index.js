@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const pool = require('../../config/db');
 const { httpResponseHandler } = require('../helper-functions')
 
 const authenticateUser = async (req, res, next) => {
@@ -18,7 +19,18 @@ const authenticateUser = async (req, res, next) => {
             next(error);
         }
 
-        req.user = { userId: payload.userId, email: payload.email };
+        // Check the database to see if any user exists with a userid that matches that in the payload
+        const user = await pool.query(
+            'SELECT * FROM Users WHERE userid=$1',
+            [payload.userId]
+        )
+        if (!user.rows.length) {
+            return httpResponseHandler.error(res, 404, "User no longer exists")
+        }
+        
+        const { userid: userId, ...remainingData } = user.rows[0];
+        req.user = { userId, ...remainingData };
+        
         next()
     } catch (error) {
         next(error)
