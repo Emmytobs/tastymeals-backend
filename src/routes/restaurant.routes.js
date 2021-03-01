@@ -9,8 +9,8 @@ restaurantRouter.get('/:restaurantId', middleware.authenticateUser, restaurantCo
 
 restaurantRouter.post('/', middleware.authenticateUser, restaurantControllers.createRestaurant)
 
-restaurantRouter.put('/', middleware.authenticateUser, restaurantControllers.updateRestaurant)
+restaurantRouter.put('/:restaurantId', middleware.authenticateUser, restaurantControllers.updateRestaurant)
 
-restaurantRouter.delete('/', middleware.authenticateUser, restaurantControllers.deleteRestaurant)
+restaurantRouter.delete('/:restaurantId', middleware.authenticateUser, restaurantControllers.deleteRestaurant)
 
 module.exports = restaurantRouter;
