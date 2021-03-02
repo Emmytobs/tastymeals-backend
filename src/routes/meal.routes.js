@@ -5,9 +5,11 @@ const mealRouter = Router();
 
 mealRouter.get('/special-offers', middleware.authenticateUser, mealControllers.getSpecialOffers)
 
-mealRouter.get('/meals', middleware.authenticateUser, mealControllers.getNewMeals)
+mealRouter.get('/all', middleware.authenticateUser, mealControllers.getNewMeals)
+mealRouter.get('/admin', middleware.authenticateUser, mealControllers.getMealsForAdmin)
 
 mealRouter.get('/:mealId', middleware.authenticateUser, mealControllers.getASpecificMeal)
+mealRouter.get('/admin/:mealId', middleware.authenticateUser, mealControllers.getMealForAdmin)
 
 mealRouter.post('/', middleware.authenticateUser, mealControllers.createMeal)
 

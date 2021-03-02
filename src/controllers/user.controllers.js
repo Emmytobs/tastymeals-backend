@@ -37,7 +37,6 @@ function userControllers () {
                 'SELECT * FROM Users WHERE email=$1',
                 [req.body.email]
             )
-            console.log(response.rows)
             if(!response.rows[0]) {
                 return httpResponseHandler.error(res, 404, 'Email/password is incorrect');
             }

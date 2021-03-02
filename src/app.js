@@ -9,6 +9,8 @@ require('dotenv').config({ path: path.resolve('config','.env') });
 const userRoutes = require('./routes/user.routes');
 const mealRoutes = require('./routes/meal.routes');
 const restaurantRoutes = require('./routes/restaurant.routes');
+const orderRoutes = require('./routes/order.routes');
+const ratingRoutes = require('./routes/rating.routes');
 
 // Middleware
 app.use(cors());
@@ -18,6 +20,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(userRoutes);
 app.use('/meal', mealRoutes);
 app.use('/restaurant', restaurantRoutes);
+app.use('/order', orderRoutes);
+app.use('/rating', ratingRoutes);
 
 // Root endpoint (for testing purposes)
 app.get('/', (req, res) => {

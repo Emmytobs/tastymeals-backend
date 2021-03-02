@@ -127,6 +127,7 @@ CREATE TABLE Orders(
     mealId INT NOT NULL,
     status VARCHAR DEFAULT 'PENDING' NOT NULL,
     createdAt TIMESTAMP DEFAULT NOW(),
+    restaurantid INT NOT NULL REFERENCES restaurants(restaurantid),
     userId INT NOT NULL REFERENCES users(userId),
     FOREIGN KEY (mealId)
         REFERENCES Meals(mealId)

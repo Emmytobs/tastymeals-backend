@@ -3,7 +3,15 @@ const functions = require('../helper-functions');
 const { httpResponseHandler } = functions;
 
 const getRestaurants = async (req, res, next) => {
+    try {
+        const response = await pool.query(
+            'SELECT * FROM Restaurants'
+        )
+        return httpResponseHandler.success(res, 200, 'Restaurants fetched successfully', response.rows)
 
+    } catch (error) {
+        next(error)
+    }
 }
 
 const getASpecificRestaurant = async (req, res, next) => {

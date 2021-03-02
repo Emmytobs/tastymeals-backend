@@ -3,7 +3,7 @@ const { restaurantControllers } = require('../controllers');
 const middleware = require('../middleware')
 const restaurantRouter = Router();
 
-restaurantRouter.get('/restaurants', middleware.authenticateUser, restaurantControllers.getRestaurants)
+restaurantRouter.get('/all', middleware.authenticateUser, restaurantControllers.getRestaurants)
 
 restaurantRouter.get('/:restaurantId', middleware.authenticateUser, restaurantControllers.getASpecificRestaurant)
 

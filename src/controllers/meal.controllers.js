@@ -7,18 +7,74 @@ const getSpecialOffers = async () => {
     // Find a way for admins to put discounts on meals   
 }
 
-const getNewMeals = async (req, res, next) => {
-    const { limit, offset } = req.query;
+const getMealsForAdmin = async (req, res, next) => {
+    const isAdmin = req.user.type === 'RESTAURANT_ADMIN';
+    if (!isAdmin) {
+        return httpResponseHandler.error(res, 403, "You are not a restaurant admin");
+    }
+
     try {
         const response = await pool.query(
-            'SELECT * FROM Meals ORDER BY createdat DESC LIMIT $1 OFFSET $2',
-            [limit, offset]
-        );
+            `
+            SELECT * FROM Meals JOIN Restaurants
+            ON Meals.restaurantid = Restaurants.restaurantid
+            WHERE Restaurants.admin_user_id = $1
+            `,
+            [req.user.userId]
+        )
         if (!response.rows.length) {
-            return httpResponseHandler.success(res, 200, 'Looks like there are no new meals', null);
+            return httpResponseHandler.success(res, 200, 'There are no meals on your profile')
         }
+        return httpResponseHandler.success(res, 200, 'Meals fetched successfully', response.rows)
+    } catch (error) {
+        next(error)
+    }
+}
+
+const getMealForAdmin = async (req, res, next) => {
+    const isAdmin = req.user.type === 'RESTAURANT_ADMIN';
+    const { mealId }  = req.params;
+
+    if (!isAdmin) {
+        return httpResponseHandler.error(res, 403, "You are not a restaurant admin");
+    }
+
+    try {
+        const response = await pool.query(
+            `
+            SELECT * FROM Meals JOIN Restaurants
+            ON Meals.restaurantid = Restaurants.restaurantid
+            WHERE Restaurants.admin_user_id = $1 AND Meals.mealid = $2
+            `,
+            [req.user.userId, mealId]
+        )
+        if (!response.rows.length) {
+            return httpResponseHandler.success(res, 404, 'Meal not found')
+        }
+        return httpResponseHandler.success(res, 200, 'Meal fetched successfully', response.rows)
+    } catch (error) {
+        next(error)
+    }
+}
+
+const getNewMeals = async (req, res, next) => {
+    // const { limit, offset } = req.query;
+    // try {
+    //     const response = await pool.query(
+    //         'SELECT * FROM Meals ORDER BY createdat DESC LIMIT $1 OFFSET $2',
+    //         [limit, offset]
+    //     );
+    //     if (!response.rows.length) {
+    //         return httpResponseHandler.success(res, 200, 'Looks like there are no new meals', null);
+    //     }
                 
-        httpResponseHandler.success(res, 200, 'New meals fetched successfully', { ...response.rows[0] });
+    //     httpResponseHandler.success(res, 200, 'New meals fetched successfully', { ...response.rows[0] });
+    // } catch (error) {
+    //     next(error)
+    // }
+    try {
+        const response = await pool.query('SELECT * FROM Meals');
+        return httpResponseHandler.success(res, 200, 'Meals fetched successfully', response.rows)
     } catch (error) {
         next(error)
     }
@@ -200,6 +256,8 @@ const deleteMeal = async (req, res, next) => {
 
 module.exports = {
     getSpecialOffers,
+    getMealsForAdmin,
+    getMealForAdmin,
     getNewMeals,
     getASpecificMeal,
     createMeal,
