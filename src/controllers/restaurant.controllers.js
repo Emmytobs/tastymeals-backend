@@ -41,6 +41,11 @@ const createRestaurant = async (req, res, next) => {
 
         // If user is a restaurant admin, insert restaurant data into the database
         const { name, address, image=null, city, country } = req.body;
+
+        if (!name || !address || !city || !country) {
+            return httpResponseHandler.error(res, 400, 'Please fill in all required fields')
+        }
+
         const newRestaurant = await pool.query(
             'INSERT INTO Restaurants (name, address, image, city, country, admin_user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
             [name, address, image, city, country, req.user.userId]

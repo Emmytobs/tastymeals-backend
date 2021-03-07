@@ -101,6 +101,15 @@ const createOrder = async (req, res, next) => {
             [mealId, restaurantId, req.user.userId]
         );
 
+        if(!response.rows.length) {
+            return httpResponseHandler.error(res, 500, 'Unexpected error');
+        }
+
+        await pool.query(
+            'UPDATE Meals SET order_count = order_count + 1 WHERE mealid=$1',
+            [mealId]
+        );
+
         return httpResponseHandler.success(res, 201, 'Order created successfully', response.rows[0])
     } catch (error) {
         next(error)

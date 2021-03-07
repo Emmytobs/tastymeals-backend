@@ -43,7 +43,7 @@ app.use((err, req, res, next) => {
         status: 'error',
         message: err.message
     });
-    return;
+    return next();
 })
 
 // Server
@@ -51,3 +51,5 @@ const port = process.env.PORT || '5000';
 app.listen(port, () => {
     console.log('Server listening on port '+ port);
 })
+
+require('crypto').randomBytes(64).toString('hex')
