@@ -88,6 +88,16 @@ function userControllers () {
 
     const viewProfile = async (req, res, next) => {
         try {
+            delete req.user.password;
+            if (req.user.type === 'RESTAURANT_ADMIN') {
+                const response = await pool.query(
+                    'SELECT restaurantid FROM Restaurants WHERE admin_user_id=$1',
+                    [req.user.userId]
+                )
+                let restaurantProfile = response.rows[0];
+                return httpResponseHandler.success(res, 200, 'User profile fetched successfully', { ...req.user, restaurantId: restaurantProfile ? restaurantProfile.restaurantid : null });
+                
+            }
             return httpResponseHandler.success(res, 200, 'User profile fetched successfully', { ...req.user });
         } catch (error) {
             next(error);

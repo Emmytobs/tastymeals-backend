@@ -30,6 +30,26 @@ const getASpecificRestaurant = async (req, res, next) => {
     }
 }
 
+const getRestaurantForAdmin = async (req, res, next) => {
+    try {
+        const isAdminUser = req.user.type === 'RESTAURANT_ADMIN';
+        if (!isAdminUser) {
+            return httpResponseHandler.error(res, 403, 'User is not a restaurant admin');
+        }
+        const restaurantProfile = await pool.query(
+            'SELECT * FROM Restaurants WHERE admin_user_id=$1',
+            [req.user.userId]
+        )
+        if (!restaurantProfile.rows.length) {
+            return httpResponseHandler.success(res, 204, 'You have not created a restaurant profile');
+        }
+
+        return httpResponseHandler.success(res, 200, 'Restaurant(s) fetched successfully', restaurantProfile.rows )
+    } catch (error) {
+        next(error)
+    }
+}
+
 // Works
 const createRestaurant = async (req, res, next) => {
     try {
@@ -143,6 +163,7 @@ const deleteRestaurant = async (req, res, next) => {
 module.exports = {
     getRestaurants,
     getASpecificRestaurant,
+    getRestaurantForAdmin,
     createRestaurant,
     updateRestaurant,
     deleteRestaurant

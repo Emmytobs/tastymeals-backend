@@ -52,4 +52,4 @@ app.listen(port, () => {
     console.log('Server listening on port '+ port);
 })
 
-require('crypto').randomBytes(64).toString('hex')
+// require('crypto').randomBytes(64).toString('hex')

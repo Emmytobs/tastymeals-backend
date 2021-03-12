@@ -5,9 +5,11 @@ const restaurantRouter = Router();
 
 restaurantRouter.get('/all', middleware.authenticateUser, restaurantControllers.getRestaurants)
 
-restaurantRouter.get('/:restaurantId', middleware.authenticateUser, restaurantControllers.getASpecificRestaurant)
+restaurantRouter.get('/admin', middleware.authenticateUser, restaurantControllers.getRestaurantForAdmin)
 
 restaurantRouter.post('/', middleware.authenticateUser, restaurantControllers.createRestaurant)
+
+restaurantRouter.get('/:restaurantId', middleware.authenticateUser, restaurantControllers.getASpecificRestaurant)
 
 restaurantRouter.put('/:restaurantId', middleware.authenticateUser, restaurantControllers.updateRestaurant)
 
