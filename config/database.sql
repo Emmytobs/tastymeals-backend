@@ -12,10 +12,10 @@ CREATE TABLE Users(
 CREATE TABLE Meals(
     mealId SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
+    description TEXT,
     price INT NOT NULL,
     image VARCHAR NOT NULL,
-    category VARCHAR NOT NULL,
+    category INT REFERENCES Categories(categoryid) ON DELETE SET NULL,
     createdAt TIMESTAMP DEFAULT NOW(),
     restaurantId INT NOT NULL,
     average_rating INT NOT NULL DEFAULT 0,
@@ -47,6 +47,7 @@ CREATE TABLE Orders(
     orderId SERIAL NOT NULL PRIMARY KEY,
     mealId INT NOT NULL,
     status VARCHAR DEFAULT 'PENDING' NOT NULL, -- Order statuses: 'PENDING', 'PROCESSING', 'DELIVERED', 'REJECTED'. Consider adding a details column to show users when their order, for example, has been rejected.
+    quantity INT DEFAULT 1 NOT NULL,
     createdAt TIMESTAMP DEFAULT NOW(),
     restaurantid INT NOT NULL REFERENCES restaurants(restaurantid),
     userId INT NOT NULL REFERENCES users(userId),
@@ -78,3 +79,10 @@ CREATE TABLE RestaurantRatings(
         REFERENCES Restaurants(restaurantId)
             ON DELETE CASCADE
 );
+
+
+CREATE TABLE Categories(
+    categoryid SERIAL NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL
+)
+-- Simply tasty; African delicious; Homeland delicious; Cafe Queen; Habeeb's foods; Kobis foods; Manuel Hut; Cactus Lagos; Hot Lunch; Healthy Diets

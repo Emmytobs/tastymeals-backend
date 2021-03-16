@@ -13,12 +13,42 @@ const getMealsForAdmin = async (req, res, next) => {
         return httpResponseHandler.error(res, 403, "You are not a restaurant admin");
     }
 
+    const { limit, offset, order_by, q } = req.query;
+    const [columnName, direction] = order_by ? order_by.split(':') : []    
+    if (!limit || !offset || !order_by) {
+        return httpResponseHandler.error(res, 400, 'One or more parameters are missing')
+    }
+
+    if (q) {
+        // Fetch meal by search query 
+        try {
+            const response = await pool.query(
+                `
+                SELECT * FROM Meals JOIN Restaurants ON Meals.restaurantid = Restaurants.restaurantid
+                WHERE Restaurants.admin_user_id = $1 AND
+                (
+                mealname ILIKE '%${q}' OR 
+                mealname ILIKE '%${q}%' OR
+                mealname ILIKE '${q}%' OR
+                mealname IN ('${q}')
+                )
+                ORDER BY ${columnName} ${direction} LIMIT ${limit} OFFSET ${offset}
+                `,
+                [req.user.userId]
+            )
+            return httpResponseHandler.success(res, 200, response.rows)
+        } catch (error) {
+            next(error)
+        }
+    }
+
     try {
         const response = await pool.query(
             `
             SELECT * FROM Meals JOIN Restaurants
             ON Meals.restaurantid = Restaurants.restaurantid
             WHERE Restaurants.admin_user_id = $1
+            ORDER BY ${columnName} ${direction} LIMIT ${limit} OFFSET ${offset}
             `,
             [req.user.userId]
         )
@@ -58,22 +88,39 @@ const getMealForAdmin = async (req, res, next) => {
 }
 
 const getNewMeals = async (req, res, next) => {
-    // const { limit, offset } = req.query;
-    // try {
-    //     const response = await pool.query(
-    //         'SELECT * FROM Meals ORDER BY createdat DESC LIMIT $1 OFFSET $2',
-    //         [limit, offset]
-    //     );
-    //     if (!response.rows.length) {
-    //         return httpResponseHandler.success(res, 200, 'Looks like there are no new meals', null);
-    //     }
-                
-    //     httpResponseHandler.success(res, 200, 'New meals fetched successfully', { ...response.rows[0] });
-    // } catch (error) {
-    //     next(error)
-    // }
+    const { limit, offset, order_by, q } = req.query;
+    const [columnName, direction] = order_by ? order_by.split(':') : []
+    
+    if (!limit || !offset || !order_by) {
+        return httpResponseHandler.error(res, 400, 'One or more parameters are missing')
+    }
+    if (q) {
+        // Fetch meal by search query 
+        try {
+            const response = await pool.query(
+                `
+                SELECT * FROM Meals WHERE mealname ILIKE '%${q}' OR 
+                mealname ILIKE '%${q}%' OR
+                mealname ILIKE '${q}%' OR
+                mealname IN ('${q}')
+                ORDER BY ${columnName} ${direction} LIMIT ${limit} OFFSET ${offset}
+                `
+            )
+            return httpResponseHandler.success(res, 200, response.rows)
+        } catch (error) {
+            next(error)
+        }
+    }
+    // If there's no search query, fetch meal by the other query parameters
     try {
-        const response = await pool.query('SELECT * FROM Meals');
+        const response = await pool.query(
+        `
+        SELECT * FROM Meals ORDER BY ${columnName} ${direction} LIMIT ${limit} OFFSET ${offset}
+        `
+        )
+        if (!response.rows.length) {
+            return httpResponseHandler.error(res, 404, 'No meals found');
+        }
         return httpResponseHandler.success(res, 200, 'Meals fetched successfully', response.rows)
     } catch (error) {
         next(error)
@@ -125,10 +172,17 @@ const createMeal = async (req, res, next) => {
         const restaurantId = existingRestaurant.rows[0].restaurantid;
 
         const newMeal = await pool.query(
-            'INSERT INTO Meals(name, description, price, image, restaurantid, category) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            'INSERT INTO Meals(mealname, description, price, mealimage, restaurantid, category) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
             [name, description, price, image, restaurantId, category]
         );
-        return httpResponseHandler.success(res, 201, 'Meal created successfully', { ...newMeal.rows[0] })
+        const insertedMeal = await pool.query(
+            `
+            SELECT * FROM Meals
+            JOIN Categories ON Meals.category=Categories.categoryid WHERE Meals.mealid=$1
+            `,
+            [newMeal.rows[0].mealid]
+        )
+        return httpResponseHandler.success(res, 201, 'Meal created successfully', { ...insertedMeal.rows[0] })
 
     } catch(error) {
         next(error)
@@ -185,7 +239,7 @@ const updateMeal = async (req, res, next) => {
         }
 
         // If it passes through all the checks, go ahead and update the meal
-        const allowedUpdates = ['name', 'description', 'price', 'image'];
+        const allowedUpdates = ['mealname', 'description', 'price', 'mealimage'];
 
         const { columnNames, variables } = functions.constructUpdateQuery(res, allowedUpdates, req.body);
 
