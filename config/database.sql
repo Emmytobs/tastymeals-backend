@@ -11,10 +11,10 @@ CREATE TABLE Users(
 
 CREATE TABLE Meals(
     mealId SERIAL NOT NULL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    mealname VARCHAR(255) NOT NULL,
     description TEXT,
     price INT NOT NULL,
-    image VARCHAR NOT NULL,
+    mealimage VARCHAR NOT NULL,
     category INT REFERENCES Categories(categoryid) ON DELETE SET NULL,
     createdAt TIMESTAMP DEFAULT NOW(),
     restaurantId INT NOT NULL,

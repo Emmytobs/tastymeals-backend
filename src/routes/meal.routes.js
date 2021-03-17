@@ -7,13 +7,13 @@ mealRouter.get('/special-offers', middleware.authenticateUser, mealControllers.g
 
 mealRouter.get('/admin', middleware.authenticateUser, mealControllers.getMealsForAdmin)
 
-mealRouter.get('/all', middleware.authenticateUser, mealControllers.getNewMeals)
-
 mealRouter.get('/admin/:mealId', middleware.authenticateUser, mealControllers.getMealForAdmin)
 
-mealRouter.post('/', middleware.authenticateUser, mealControllers.createMeal)
+mealRouter.get('/', middleware.authenticateUser, mealControllers.getMeals)
 
 mealRouter.get('/:mealId', middleware.authenticateUser, mealControllers.getASpecificMeal)
+
+mealRouter.post('/', middleware.authenticateUser, mealControllers.createMeal)
 
 mealRouter.put('/:mealId', middleware.authenticateUser, mealControllers.updateMeal)
 

@@ -61,6 +61,7 @@ const getMealsForAdmin = async (req, res, next) => {
     }
 }
 
+
 const getMealForAdmin = async (req, res, next) => {
     const isAdmin = req.user.type === 'RESTAURANT_ADMIN';
     const { mealId }  = req.params;
@@ -87,35 +88,60 @@ const getMealForAdmin = async (req, res, next) => {
     }
 }
 
-const getNewMeals = async (req, res, next) => {
-    const { limit, offset, order_by, q } = req.query;
-    const [columnName, direction] = order_by ? order_by.split(':') : []
-    
-    if (!limit || !offset || !order_by) {
-        return httpResponseHandler.error(res, 400, 'One or more parameters are missing')
-    }
+// Used to fetch related meals on the meal details page OR
+// Used to fetch all meals by the restaurant on the restaurant details page OR
+const getMeals = async (req, res, next) => {
+    const { limit='ALL', offset="0", order_by, columnFilter, q } = req.query;
+    const [columnName='mealid', direction='asc'] = order_by ? order_by.split(':') : []
+
     if (q) {
-        // Fetch meal by search query 
+        // Used to fetch meals that match a search query
         try {
             const response = await pool.query(
                 `
-                SELECT * FROM Meals WHERE mealname ILIKE '%${q}' OR 
+                SELECT Meals.*, Restaurants.name FROM Meals JOIN Restaurants 
+                ON Meals.restaurantid=Restaurants.restaurantid
+                WHERE mealname ILIKE '%${q}' OR 
                 mealname ILIKE '%${q}%' OR
                 mealname ILIKE '${q}%' OR
                 mealname IN ('${q}')
                 ORDER BY ${columnName} ${direction} LIMIT ${limit} OFFSET ${offset}
                 `
             )
-            return httpResponseHandler.success(res, 200, response.rows)
+            if (!response.rows.length) {
+                return httpResponseHandler.error(res, 404, 'No meals match your search term')
+            }
+            return httpResponseHandler.success(res, 200, 'Meals fetched successfully', response.rows)
         } catch (error) {
             next(error)
         }
     }
-    // If there's no search query, fetch meal by the other query parameters
+    if (columnFilter) {
+        const [column, columnValue] = columnFilter.split(':')
+        // Used to fetch meals by a specific condition for any column in the meals table
+        try {
+            const response = await pool.query(
+            `
+            SELECT * FROM Meals WHERE Meals.${column}=$1
+            ORDER BY ${columnName} ${direction} LIMIT ${limit} OFFSET ${offset}
+            `,
+            [columnValue])
+            if (!response.rows.length) {
+                return httpResponseHandler.error(res, 404, 'No meals found')
+            }
+            return httpResponseHandler.success(res, 200, 'Meals fetched successfully', response.rows);
+        } catch (error) {
+            next(error)
+        }
+    }
+    
     try {
+        // Used to fetch all meals with no specific conditions
         const response = await pool.query(
         `
-        SELECT * FROM Meals ORDER BY ${columnName} ${direction} LIMIT ${limit} OFFSET ${offset}
+        SELECT Meals.*, Restaurants.name FROM Meals 
+        JOIN Restaurants ON Meals.restaurantid=Restaurants.restaurantid
+        ORDER BY ${columnName} ${direction} LIMIT ${limit} OFFSET ${offset}
         `
         )
         if (!response.rows.length) {
@@ -131,7 +157,9 @@ const getASpecificMeal = async (req, res, next) => {
     const { mealId } = req.params;
     try {
         const response = await pool.query(
-            'SELECT * FROM Meals WHERE mealId=$1',
+            `
+            SELECT * FROM Meals JOIN Restaurants ON Meals.restaurantid=Restaurants.restaurantid WHERE mealId=$1
+            `,
             [mealId]
         )
         if (!response.rows[0]) {
@@ -312,7 +340,7 @@ module.exports = {
     getSpecialOffers,
     getMealsForAdmin,
     getMealForAdmin,
-    getNewMeals,
+    getMeals,
     getASpecificMeal,
     createMeal,
     updateMeal,

@@ -18,7 +18,10 @@ const getASpecificRestaurant = async (req, res, next) => {
     const { restaurantId } = req.params;
     try {
         const restaurant = await pool.query(
-            'SELECT * FROM Restaurants WHERE restaurantid=$1',
+            `
+            SELECT * FROM Restaurants JOIN Users ON Restaurants.admin_user_id=Users.userid
+            WHERE restaurantid=$1
+            `,
             [restaurantId]
         );
         if (!restaurant.rows.length) {
