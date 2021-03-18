@@ -10,8 +10,14 @@ const getOrdersForAdmin = async (req, res, next) => {
 
         const response = await pool.query(
             `
-            SELECT * FROM Orders JOIN Restaurants
-            ON Orders.restaurantid = Restaurants.restaurantid
+            SELECT 
+                Orders.orderid, Orders.status, Orders.createdat, Orders.quantity, orders.order_note,
+                Users.firstname, Users.lastname, Users.phone,
+                Meals.mealname
+            FROM Orders 
+            INNER JOIN Restaurants ON Orders.restaurantid = Restaurants.restaurantid
+            INNER JOIN Users ON Orders.userid = Users.userid
+            INNER JOIN Meals ON Orders.mealid = Meals.mealid
             WHERE Restaurants.admin_user_id = $1
             `,
             [req.user.userId]
@@ -94,11 +100,11 @@ const getASpecificOrder = async (req, res, next) => {
 }
 
 const createOrder = async (req, res, next) => {
-    const { mealId, restaurantId } = req.body;
+    const { mealId, restaurantId, orderNote, orderQuantity } = req.body;
     try {
         const response = await pool.query(
-            'INSERT INTO Orders (mealid, restaurantid, userid) VALUES($1, $2, $3) RETURNING *',
-            [mealId, restaurantId, req.user.userId]
+            'INSERT INTO Orders (mealid, restaurantid, order_note, quantity, userid) VALUES($1, $2, $3, $4, $5) RETURNING *',
+            [mealId, restaurantId, orderNote, orderQuantity, req.user.userId]
         );
 
         if(!response.rows.length) {

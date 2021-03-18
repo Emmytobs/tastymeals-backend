@@ -48,6 +48,7 @@ CREATE TABLE Orders(
     mealId INT NOT NULL,
     status VARCHAR DEFAULT 'PENDING' NOT NULL, -- Order statuses: 'PENDING', 'PROCESSING', 'DELIVERED', 'REJECTED'. Consider adding a details column to show users when their order, for example, has been rejected.
     quantity INT DEFAULT 1 NOT NULL,
+    order_note VARCHAR DEFAULT NULL,
     createdAt TIMESTAMP DEFAULT NOW(),
     restaurantid INT NOT NULL REFERENCES restaurants(restaurantid),
     userId INT NOT NULL REFERENCES users(userId),

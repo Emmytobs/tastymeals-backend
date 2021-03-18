@@ -13,11 +13,8 @@ const getMealsForAdmin = async (req, res, next) => {
         return httpResponseHandler.error(res, 403, "You are not a restaurant admin");
     }
 
-    const { limit, offset, order_by, q } = req.query;
-    const [columnName, direction] = order_by ? order_by.split(':') : []    
-    if (!limit || !offset || !order_by) {
-        return httpResponseHandler.error(res, 400, 'One or more parameters are missing')
-    }
+    const { limit='ALL', offset='0', order_by, q } = req.query;
+    const [columnName='mealid', direction='ASC'] = order_by ? order_by.split(':') : [];
 
     if (q) {
         // Fetch meal by search query 
