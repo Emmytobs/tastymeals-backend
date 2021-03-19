@@ -12,6 +12,7 @@ const restaurantRoutes = require('./routes/restaurant.routes');
 const orderRoutes = require('./routes/order.routes');
 const ratingRoutes = require('./routes/rating.routes');
 const categoryRoutes = require('./routes/category.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 // Middleware
 app.use(cors());
@@ -24,6 +25,7 @@ app.use('/restaurant', restaurantRoutes);
 app.use('/order', orderRoutes);
 app.use('/rating', ratingRoutes);
 app.use('/category', categoryRoutes);
+app.use('/notification', notificationRoutes);
 
 // Root endpoint (for testing purposes)
 app.get('/', (req, res) => {

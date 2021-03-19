@@ -45,6 +45,9 @@ CREATE TABLE Restaurants(
 
 CREATE TABLE Orders(
     orderId SERIAL NOT NULL PRIMARY KEY,
+    order_ref INT DEFAULT 'floor(random() * 1000000)' NOT NULL,
+    delivery_location VARCHAR,
+    type VARCHAR NOT NULL, -- 'DELIVER' or 'PICKUP'
     mealId INT NOT NULL,
     status VARCHAR DEFAULT 'PENDING' NOT NULL, -- Order statuses: 'PENDING', 'PROCESSING', 'DELIVERED', 'REJECTED'. Consider adding a details column to show users when their order, for example, has been rejected.
     quantity INT DEFAULT 1 NOT NULL,
@@ -86,4 +89,14 @@ CREATE TABLE Categories(
     categoryid SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR NOT NULL
 )
+
+CREATE TABLE Notifications(
+    notification_id SERIAL NOT NULL PRIMARY KEY,
+    notification_message VARCHAR NOT NULL,
+    notification_read BOOLEAN DEFAULT 'false' NOT NULL,
+    notification_user_id INT NOT NULL REFERENCES Users(userid),
+    notification_order_id INT NOT NULL REFERENCES Orders(orderid),
+    notification_created_at TIMESTAMP DEFAULT NOW()
+)
+
 -- Simply tasty; African delicious; Homeland delicious; Cafe Queen; Habeeb's foods; Kobis foods; Manuel Hut; Cactus Lagos; Hot Lunch; Healthy Diets

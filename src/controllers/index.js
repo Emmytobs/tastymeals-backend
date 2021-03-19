@@ -4,5 +4,6 @@ module.exports = {
     restaurantControllers: require('./restaurant.controllers'),
     orderControllers: require('./order.controllers'),
     ratingControllers: require('./rating.controllers'),
-    categoryControllers: require('./category.controllers')
+    categoryControllers: require('./category.controllers'),
+    notificationControllers: require('./notification.controllers')
 }

@@ -1,5 +1,5 @@
 const pool = require('../../config/db');
-const { httpResponseHandler } = require('../helper-functions');
+const { httpResponseHandler, constructUpdateQuery } = require('../helper-functions');
 
 const getOrdersForAdmin = async (req, res, next) => {
     try {
@@ -11,7 +11,7 @@ const getOrdersForAdmin = async (req, res, next) => {
         const response = await pool.query(
             `
             SELECT 
-                Orders.orderid, Orders.status, Orders.createdat, Orders.quantity, orders.order_note,
+                Orders.orderid, Orders.status, Orders.createdat, Orders.quantity, Orders.order_note, Orders.order_ref, Orders.delivery_location, Orders.type,
                 Users.firstname, Users.lastname, Users.phone,
                 Meals.mealname
             FROM Orders 
@@ -122,8 +122,71 @@ const createOrder = async (req, res, next) => {
     }
 }
 
-const updateOrder = async () => {
+const updateOrderForAdmin = async (req, res, next) => {
+    const { orderId } = req.params;
+    if (!orderId) {
+        return httpResponseHandler.error(res, 400, 'Order id not provided');
+    }
+    try {
+        const updates = Object.keys(req.body);
+        const allowedUpdates = ['status'];
+        const { columnNames, variables } = constructUpdateQuery(res, allowedUpdates, req.body)
+        const response = await pool.query(
+            `
+            UPDATE Orders SET ${columnNames} WHERE orderid = (
+                SELECT Orders.orderid FROM Orders 
+                INNER JOIN Restaurants ON Orders.restaurantid = Restaurants.restaurantid
+                WHERE Restaurants.admin_user_id=$${updates.length + 1}
+                AND Orders.orderid=$${updates.length + 2}
+            )
+            RETURNING *
+            `,
+            [...variables, req.user.userId, orderId]
+        )
 
+        if (!response.rows.length) {
+            return httpResponseHandler.error(res, 404, 'Order not found')
+        }
+        // Once the order status changes successfully, alert the customer by creating a notification for them
+        let notificationMessage = ''
+        const { rows: [{ mealname }] } = await pool.query(
+            ` 
+            SELECT Meals.mealname FROM Orders
+            JOIN Meals ON Meals.mealid=Orders.mealid
+            WHERE Orders.orderid=$1
+            `,
+            [response.rows[0].orderid]
+        );
+
+        if (response.rows[0].status === 'DELIVERED') {
+            notificationMessage = `Your order for ${mealname} has been delivered!`
+        } else if (response.rows[0].status === 'REJECTED') {
+            notificationMessage = `Your order for ${mealname} was rejected!`
+        }
+        else {
+            notificationMessage = `Your order status for ${mealname} has been updated`
+        }
+
+        await pool.query(
+            `
+            INSERT INTO Notifications(
+                notification_message,
+                notification_user_id,
+                notification_order_id
+            ) VALUES ($1, $2, $3)
+            RETURNING *
+            `,
+            [
+                notificationMessage,
+                response.rows[0].userid,
+                response.rows[0].orderid,
+            ]
+        );
+
+        return httpResponseHandler.success(res, 200, 'Order fetched successfully', response.rows)
+    } catch (error) {
+        next(error)
+    }
 }
 
 const deleteOrder = async () => {
@@ -136,6 +199,6 @@ module.exports = {
     getASpecificOrderForAdmin,
     getASpecificOrder,
     createOrder,
-    updateOrder,
+    updateOrderForAdmin,
     deleteOrder
 }

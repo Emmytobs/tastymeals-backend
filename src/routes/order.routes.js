@@ -11,7 +11,7 @@ orderRouter.get('/admin/:orderId', authenticateUser, orderControllers.getASpecif
 
 orderRouter.post('/', authenticateUser, orderControllers.createOrder);
 
-orderRouter.put('/', authenticateUser, orderControllers.updateOrder);
+orderRouter.put('/:orderId', authenticateUser, orderControllers.updateOrderForAdmin);
 
 orderRouter.delete('/', authenticateUser, orderControllers.deleteOrder);
 
