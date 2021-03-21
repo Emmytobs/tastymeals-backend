@@ -3,14 +3,16 @@ const { restaurantControllers } = require('../controllers');
 const middleware = require('../middleware')
 const restaurantRouter = Router();
 
-restaurantRouter.get('/restaurants', middleware.authenticateUser, restaurantControllers.getRestaurants)
+restaurantRouter.get('/all', middleware.authenticateUser, restaurantControllers.getRestaurants)
 
-restaurantRouter.get('/restaurant/:restaurantId', middleware.authenticateUser, restaurantControllers.getASpecificRestaurant)
+restaurantRouter.get('/admin', middleware.authenticateUser, restaurantControllers.getRestaurantForAdmin)
 
-restaurantRouter.post('/restaurant', middleware.authenticateUser, restaurantControllers.createRestaurant)
+restaurantRouter.post('/', middleware.authenticateUser, restaurantControllers.createRestaurant)
 
-restaurantRouter.update('/restaurant', middleware.authenticateUser, restaurantControllers.updateRestaurant)
+restaurantRouter.get('/:restaurantId', middleware.authenticateUser, restaurantControllers.getASpecificRestaurant)
 
-restaurantRouter.delete('/restaurant', middleware.authenticateUser, restaurantControllers.deleteRestaurant)
+restaurantRouter.put('/:restaurantId', middleware.authenticateUser, restaurantControllers.updateRestaurant)
+
+restaurantRouter.delete('/:restaurantId', middleware.authenticateUser, restaurantControllers.deleteRestaurant)
 
 module.exports = restaurantRouter;

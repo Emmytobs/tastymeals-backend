@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const pool = require('../../config/db');
 const { httpResponseHandler } = require('../helper-functions')
 
 const authenticateUser = async (req, res, next) => {
@@ -6,13 +7,30 @@ const authenticateUser = async (req, res, next) => {
         const authHeader = req.headers['authorization']
         const token = authHeader && authHeader.replace('Bearer ', '');
         if (!token) {
-            return httpResponseHandler(res, 401, "No authentication token provided")
+            return httpResponseHandler.error(res, 401, "No authentication token provided")
         }
-        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-        if (!payload) {
-            return httpResponseHandler(res, 403, "Token is invalid");
+
+        let payload;
+        try {
+            payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        } catch (err) {
+            const error = new Error('Token is invalid');
+            error.status = 401;
+            next(error);
         }
-        req.user = { userId: payload.userId, email: payload.email };
+
+        // Check the database to see if any user exists with a userid that matches that in the payload
+        const user = await pool.query(
+            'SELECT * FROM Users WHERE userid=$1',
+            [payload.userId]
+        )
+        if (!user.rows.length) {
+            return httpResponseHandler.error(res, 404, "User no longer exists")
+        }
+        
+        const { userid: userId, ...remainingData } = user.rows[0];
+        req.user = { userId, ...remainingData };
+        
         next()
     } catch (error) {
         next(error)

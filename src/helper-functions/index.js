@@ -1,27 +1,25 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-function httpResponseHandler(res, status, message, data=null) {
-    function statusBeginsWith(number) {
-        status = String(status);
-        return status[0] == String(number);
-    }
-    
-    if (statusBeginsWith(4)) {
-        res.status = status;
+const httpResponseHandler = {
+    error(res, status, message, data=null) {
+        res.status(status);
         res.json({
             status: 'error',
             message,
             data
         })
         return;
+    },
+    success(res, status, message, data=null) {
+        res.status(status);
+        res.json({
+            status: 'success',
+            message,
+            data
+        })
+        return;
     }
-    res.status = status;
-    res.json({
-        status: 'success',
-        message,
-        data
-    })
 }
 
 const hashPassword = async (password) => {
@@ -30,7 +28,7 @@ const hashPassword = async (password) => {
 }
 
 const generateAuthToken = (payload) => {
-    const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '45m' });
+    const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
     const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '3d' });
     return { accessToken, refreshToken };
 }
@@ -41,9 +39,38 @@ const getAuthToken = (req) => {
     return token;
 }
 
+
+const constructUpdateQuery = (res, allowedUpdates, requestBody) => {
+    const updates = Object.keys(requestBody);
+
+    let variables = [];
+    let columnNames = '';
+
+    updates.forEach(async (update, index) => {
+        const forbiddenUpdate = !allowedUpdates.includes(update);
+        if (forbiddenUpdate) {
+            httpResponseHandler.error(res, 403, 'One or more items is forbidden to be updated')
+            return;
+        }
+        
+        let hashedPassword = null;
+        if(update == 'password') {
+            hashedPassword = await hashPassword(requestBody[update]);
+            requestBody[update] = hashedPassword;
+        }
+
+        const isLastItem = index == updates.length - 1;
+        isLastItem ? columnNames += `${update}=$${index + 1}`: columnNames += `${update}=$${index + 1}, `;
+        variables.push(requestBody[update]);
+    })
+    return { columnNames, variables };
+}
+
+
 module.exports = {
     httpResponseHandler,
     hashPassword,
     generateAuthToken,
-    getAuthToken
+    getAuthToken,
+    constructUpdateQuery
 }

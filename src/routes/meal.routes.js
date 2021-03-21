@@ -3,16 +3,20 @@ const { mealControllers } = require('../controllers');
 const middleware = require('../middleware')
 const mealRouter = Router();
 
-mealRouter.get('/meal/special-offers', middleware.authenticateUser, mealControllers.getSpecialOffers)
+mealRouter.get('/special-offers', middleware.authenticateUser, mealControllers.getSpecialOffers)
 
-mealRouter.get('/meal/new-meals', middleware.authenticateUser, mealControllers.getNewMeals)
+mealRouter.get('/admin', middleware.authenticateUser, mealControllers.getMealsForAdmin)
 
-mealRouter.get('/meal/:mealId', middleware.authenticateUser, mealControllers.getASpecificMeal)
+mealRouter.get('/admin/:mealId', middleware.authenticateUser, mealControllers.getMealForAdmin)
 
-mealRouter.post('/meal', middleware.authenticateUser, mealControllers.createMeal)
+mealRouter.get('/', middleware.authenticateUser, mealControllers.getMeals)
 
-mealRouter.update('/meal/:mealId', middleware.authenticateUser, mealControllers.updateMeal)
+mealRouter.get('/:mealId', middleware.authenticateUser, mealControllers.getASpecificMeal)
 
-mealRouter.delete('/meal/:mealId', middleware.authenticateUser, mealControllers.deleteMeal);
+mealRouter.post('/', middleware.authenticateUser, mealControllers.createMeal)
+
+mealRouter.put('/:mealId', middleware.authenticateUser, mealControllers.updateMeal)
+
+mealRouter.delete('/:mealId', middleware.authenticateUser, mealControllers.deleteMeal);
 
 module.exports = mealRouter;
