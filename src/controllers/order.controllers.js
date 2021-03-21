@@ -100,13 +100,14 @@ const getASpecificOrder = async (req, res, next) => {
 }
 
 const createOrder = async (req, res, next) => {
-    const { mealId, restaurantId, orderNote, orderQuantity } = req.body;
+    const { mealId, restaurantId, orderNote, orderType, deliveryLocation, orderQuantity } = req.body;
     try {
         const response = await pool.query(
-            'INSERT INTO Orders (mealid, restaurantid, order_note, quantity, userid) VALUES($1, $2, $3, $4, $5) RETURNING *',
-            [mealId, restaurantId, orderNote, orderQuantity, req.user.userId]
+            `
+            INSERT INTO Orders (mealid, restaurantid, order_note, order_type, delivery_location, quantity, userid) 
+            VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [mealId, restaurantId, orderNote, orderType, deliveryLocation, orderQuantity, req.user.userId]
         );
-
         if(!response.rows.length) {
             return httpResponseHandler.error(res, 500, 'Unexpected error');
         }

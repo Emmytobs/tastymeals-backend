@@ -1,6 +1,24 @@
 const pool = require('../../config/db');
 const { httpResponseHandler } = require('../helper-functions');
 
+const verifyIfUserCanRateMeal = async (req, res, next) => {
+    const { mealId } = req.params;
+    try {
+        const response = await pool.query(
+            `
+            SELECT * FROM Orders WHERE userid=$1 AND mealid=$2
+            `,
+            [req.user.userId, mealId]
+        )        
+        if (!response.rows.length) {
+            return httpResponseHandler.success(res, 204, 'You can rate this meal once you order it')
+        }
+        return httpResponseHandler.success(res, 200, 'You have ordered this meal')
+    } catch (error) {
+        next(error)
+    }
+}
+
 const createMealRating = async (req, res, next) => {
     const { rating, review=null, mealId } = req.body;
     try {
@@ -14,12 +32,12 @@ const createMealRating = async (req, res, next) => {
             WHERE userid=$1 AND mealid=$2
             `,
             [req.user.userId, mealId]
-        )
+            )
         // If not, refuse the request
         if (!response.rows.length) {
             return httpResponseHandler.error(res, 403, 'You can rate this meal once you order it')
         }
-
+        
         // ELse, create a meal rating
         const mealRating = await pool.query(
             `
@@ -99,6 +117,46 @@ const createRestaurantRating = async (req, res, next) => {
     }
 }
 
+const getMealRatings = async (req, res, next) => {
+    const { mealId } = req.params;
+    try {
+        const response = await pool.query(
+            `
+            SELECT MealRatings.rating, MealRatings.review, MealRatings.createdat, 
+            Users.firstname, Users.lastname 
+            FROM MealRatings
+            JOIN Users ON MealRatings.userid=Users.userid
+            WHERE mealid = $1
+            `,
+            [mealId]
+        )
+        if (!response.rows.length) {
+            return httpResponseHandler.success(res, 200, 'No ratings for this meal yet')
+        }
+        return httpResponseHandler.success(res, 200, 'Meal ratings fetched successfully', response.rows)
+    } catch (error) {
+        next(error)
+    }
+}
+
+const getLoggedInUserMealRating = async (req,res, next) => {
+    const { mealId, userId } = req.params;
+    try {
+        const response = await pool.query(
+            `
+            SELECT * FROM MealRatings WHERE userid=$1 AND mealid=$2
+            `,
+            [userId, mealId]
+        );
+        if (!response.rows.length) {
+            return httpResponseHandler.success(res, 204, 'You have not rated this meal')
+        }
+        return httpResponseHandler.success(res, 200, 'Meal rating by user fetched successfully', response.rows[0])
+    } catch (error) {
+        next(error)
+    }
+}
+
 const updateMealRating = async () => {
 
 }
@@ -150,6 +208,9 @@ const deleteRestaurantRating = async (req, res, next) => {
 module.exports = {
     createMealRating,
     createRestaurantRating,
+    getMealRatings,
+    verifyIfUserCanRateMeal,
+    getLoggedInUserMealRating,
     updateMealRating,
     updateRestaurantRating,
     deleteMealRating,
