@@ -10,13 +10,15 @@ const developmentConfig = {
     database: process.env.PG_DATABASE,
 }
 const productionConfig = {
-    connectionString: process.env.DATABASE_URL
+    connectionString: process.env.DATABASE_URL,
+    ssl: true
 }
 
 const pool = new Pool(
     process.env.NODE_ENV === 'production' ? productionConfig : developmentConfig
 );
-
+    
+    
 pool.connect()
     .then(() => console.log('Postgres Database connected successfully'))
     .catch((error) => console.log(error))
