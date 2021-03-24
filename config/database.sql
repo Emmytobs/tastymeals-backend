@@ -46,8 +46,10 @@ CREATE TABLE Restaurants(
 CREATE TABLE Orders(
     orderId SERIAL NOT NULL PRIMARY KEY,
     order_ref INT DEFAULT 'floor(random() * 1000000)' NOT NULL,
-    delivery_location VARCHAR,
-    order_type VARCHAR NOT NULL, -- 'DELIVER' or 'PICKUP'
+    delivery_address VARCHAR NOT NULL,
+    delivery_city VARCHAR NOT NULL,
+    delivery_type VARCHAR NOT NULL, -- 'DELIVERY' or 'PICKUP'
+    cash_amount INT NOT NULL,
     mealId INT NOT NULL,
     status VARCHAR DEFAULT 'PENDING' NOT NULL, -- Order statuses: 'PENDING', 'PROCESSING', 'DELIVERED', 'REJECTED'. Consider adding a details column to show users when their order, for example, has been rejected.
     quantity INT DEFAULT 1 NOT NULL,

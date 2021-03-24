@@ -11,7 +11,7 @@ const getOrdersForAdmin = async (req, res, next) => {
         const response = await pool.query(
             `
             SELECT 
-                Orders.orderid, Orders.status, Orders.createdat, Orders.quantity, Orders.order_note, Orders.order_ref, Orders.delivery_location, Orders.type,
+                Orders.orderid, Orders.status, Orders.createdat, Orders.quantity, Orders.order_note, Orders.order_ref, Orders.delivery_address, Orders.delivery_city, Orders.delivery_type,
                 Users.firstname, Users.lastname, Users.phone,
                 Meals.mealname
             FROM Orders 
@@ -100,13 +100,13 @@ const getASpecificOrder = async (req, res, next) => {
 }
 
 const createOrder = async (req, res, next) => {
-    const { mealId, restaurantId, orderNote, orderType, deliveryLocation, orderQuantity } = req.body;
+    const { mealId, restaurantId, orderNote, deliveryType, deliveryAddress, deliveryCity, orderQuantity, cashAmount } = req.body;
     try {
         const response = await pool.query(
             `
-            INSERT INTO Orders (mealid, restaurantid, order_note, order_type, delivery_location, quantity, userid) 
-            VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [mealId, restaurantId, orderNote, orderType, deliveryLocation, orderQuantity, req.user.userId]
+            INSERT INTO Orders (mealid, restaurantid, order_note, delivery_type, delivery_address, delivery_city, quantity, cash_amount, userid) 
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+            [mealId, restaurantId, orderNote, deliveryType, deliveryAddress, deliveryCity, orderQuantity, cashAmount, req.user.userId]
         );
         if(!response.rows.length) {
             return httpResponseHandler.error(res, 500, 'Unexpected error');
