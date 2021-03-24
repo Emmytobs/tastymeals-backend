@@ -34,6 +34,9 @@ CREATE TABLE Restaurants(
     city VARCHAR NOT NULL,
     country VARCHAR NOT NULL,
     image VARCHAR DEFAULT NULL,
+    account_number INT NULL,
+    account_bank VARCHAR NULL,
+    account_name VARCHAR NULL,
     admin_user_id INT NOT NULL, -- when creating an admin user, tell them their contact details will be displayed for customers when the customers want to reach out to the restaurant.
     createdAt TIMESTAMP DEFAULT NOW(),
     average_rating INT NOT NULL DEFAULT 0,
