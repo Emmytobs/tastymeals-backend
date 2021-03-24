@@ -42,8 +42,9 @@ const getMealsForAdmin = async (req, res, next) => {
     try {
         const response = await pool.query(
             `
-            SELECT * FROM Meals JOIN Restaurants
-            ON Meals.restaurantid = Restaurants.restaurantid
+            SELECT *, Categories.categoryname FROM Meals 
+            INNER JOIN Restaurants ON Meals.restaurantid = Restaurants.restaurantid
+            INNER JOIN Categories ON Meals.category=Categories.categoryid
             WHERE Restaurants.admin_user_id = $1
             ORDER BY ${columnName} ${direction} LIMIT ${limit} OFFSET ${offset}
             `,
@@ -218,7 +219,6 @@ const updateMeal = async (req, res, next) => {
     const updates = Object.keys(req.body);
     const { mealId } = req.params;
 
-    console.log(req.body)
     if (!updates.length || !req.body) {
         return httpResponseHandler.error(res, 400, 'No field added to update');
     }
@@ -244,7 +244,7 @@ const updateMeal = async (req, res, next) => {
         'SELECT * FROM Restaurants WHERE admin_user_id=$1',
         [req.user.userId]
         );
-        // If the user is not an admin, prevent them from creating a meal
+        // If the user is an admin but has no restaurant profile, prevent them from creating a meal
         if (!existingRestaurantByLoggedInUser.rows.length) {
             return httpResponseHandler.error(res, 403, 'To update a meal, you need to create a retaurant profile.', null)
         }
@@ -252,7 +252,7 @@ const updateMeal = async (req, res, next) => {
         // If the meal exists and the user is an admin user, check if it was created by the currently logged in user (req.user)
         const existingMealByLoggedInUser = await pool.query(
             `
-            SELECT Meals.name, Meals.description, Meals.price, Meals.image
+            SELECT Meals.mealname, Meals.description, Meals.price, Meals.mealimage
             FROM Meals
             JOIN Restaurants ON Meals.restaurantid = Restaurants.restaurantid
             WHERE Restaurants.admin_user_id = $1 AND Meals.mealid = $2
