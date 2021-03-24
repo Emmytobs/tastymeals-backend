@@ -122,7 +122,7 @@ const getMealRatings = async (req, res, next) => {
     try {
         const response = await pool.query(
             `
-            SELECT MealRatings.rating, MealRatings.review, MealRatings.createdat, 
+            SELECT MealRatings.ratingid, MealRatings.rating, MealRatings.review, MealRatings.createdat, 
             Users.firstname, Users.lastname 
             FROM MealRatings
             JOIN Users ON MealRatings.userid=Users.userid

@@ -4,7 +4,7 @@ CREATE TABLE Users(
     firstname VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    phone INT DEFAULT NULL,
+    phone VARCHAR DEFAULT NULL,
     password VARCHAR NOT NULL,
     createdAt TIMESTAMP DEFAULT NOW()
 );
@@ -34,7 +34,7 @@ CREATE TABLE Restaurants(
     city VARCHAR NOT NULL,
     country VARCHAR NOT NULL,
     image VARCHAR DEFAULT NULL,
-    account_number INT NULL,
+    account_number VARCHAR NULL,
     account_bank VARCHAR NULL,
     account_name VARCHAR NULL,
     admin_user_id INT NOT NULL, -- when creating an admin user, tell them their contact details will be displayed for customers when the customers want to reach out to the restaurant.
