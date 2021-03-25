@@ -156,7 +156,7 @@ const getASpecificMeal = async (req, res, next) => {
     try {
         const response = await pool.query(
             `
-            SELECT * FROM Meals JOIN Restaurants ON Meals.restaurantid=Restaurants.restaurantid WHERE mealId=$1
+            SELECT * FROM Meals JOIN Restaurants ON Meals.restaurantid=Restaurants.restaurantid WHERE mealid=$1
             `,
             [mealId]
         )
