@@ -57,11 +57,11 @@ const createMealRating = async (req, res, next) => {
                 SELECT COUNT(rating) FROM MealRatings
                 WHERE mealid=$1
             )
-            WHERE mealid=$1
+            WHERE mealid=$1 RETURNING *
             `,
             [mealId]
         );
-
+        
         return httpResponseHandler.success(res, 201, 'Meal rating created successfully', { ...mealRating.rows[0] })
     } catch (error) {
         next(error)
